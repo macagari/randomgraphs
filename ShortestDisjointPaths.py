@@ -5,9 +5,9 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+import sys
 randomGraph = __import__('ER-Random Graph')
 regRandGraph = __import__('Regular Random Graph')
-import sys
 
 
 # This class represents a directed graph using
@@ -20,9 +20,8 @@ class Graph:
     # Returns true if there is a path from source 's' to sink 't' in
     # residual graph. Also fills parent[] to store the path '''
     def BFS(self, s, t, parent):
-
         # Mark all the vertices as not visited
-        visited = [False] * (self.ROW)
+        visited = [False]*self.ROW
 
         # Create a queue for BFS
         queue = []
@@ -44,49 +43,37 @@ class Graph:
                 if visited[ind] == False and val == -1:
                     queue.append(ind)
                     visited[ind] = True
-                    parent[ind] = u
+                    parent[ind] = u  # store path
 
         # If we reached sink in BFS starting from source, then return
         # true, else false
         return True if visited[t] else False
 
-    # Returns tne maximum number of edge-disjoint paths from
-    # s to t in the given graph
+    # Returns the maximum number of edge-disjoint paths from s to t in the given graph
+    # It was used the max-flow/residual capacity approach
     def findDisjointPaths(self, source, sink, l):
         paths = []
-        # This array is filled by BFS and to store path
-        parent = [-1] * (self.ROW)
+        # This array is filled by BFS to store path
+        parent = [-1]*self.ROW
 
         max_flow = 0  # There is no flow initially
 
-        # Augment the flow while there is path from source to sink
+        # Augment the flow while there is a path from source to sink
         while self.BFS(source, sink, parent):
             path = ""  # keep track of the nodes visited
-            # Find minimum residual capacity of the edges along the
-            # path filled by BFS. Or we can say find the maximum flow
-            # through the path found.
+
             path_flow = np.inf
             s = sink
             while s != source:
+                path += str(s)
                 path_flow = min(path_flow, self.graph[parent[s]][s])
+                if s != source and s != sink:
+                    self.delete_edges(s)  # remove all the edges of the vertex s, so it cannot be used again
+                elif parent[s] == source:
+                    self.delete_edge(source, sink)
                 s = parent[s]
-
-            # Add path flow to overall flow
-            max_flow += path_flow
-
-            # update residual capacities of the edges and reverse edges
-            # along the path
-            v = sink
-            path += str(sink)
-            while v != source:
-                u = parent[v]
-                path += str(u)  # add the node to the path
-                self.graph[u][v] -= path_flow
-                self.graph[v][u] += path_flow
-                v = parent[v]
-
-                if u != source:
-                    self.delete_edges(u)  # remove all the edges of the vertex u, so it cannot be used again
+            path += str(source)
+            max_flow += path_flow   # Add path flow to overall flow
             paths.append(path[::-1])
             if l != 0 and l == len(paths):
                 return -max_flow, paths
@@ -94,7 +81,9 @@ class Graph:
 
     def delete_edges(self, u):
         for i in range(self.ROW):
-            self.graph[u][i] = 0
+            self.delete_edge(u,i)
+    def delete_edge(self, u, v):
+        self.graph[u][v] = 0
 
 
 def main():
@@ -105,6 +94,8 @@ def main():
     G = nx.from_numpy_matrix(randGraph)
     plt.clf()
     nx.draw_networkx(G, pos=nx.spring_layout(G))
+    plt.show(block=True)
+
     g = Graph(randGraph)
     source = 0;
     sink = np.shape(randGraph)[0] - 1
@@ -113,7 +104,6 @@ def main():
     print("These are the %d edge-disjoint paths from %d to %d:" %
           (disj_path[0], source, sink))
     print(all_paths)
-    plt.show(block=True)
 
 
 if __name__ == "__main__":
