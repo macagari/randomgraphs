@@ -77,6 +77,7 @@ class Graph:
             # update residual capacities of the edges and reverse edges
             # along the path
             v = sink
+            path += str(sink)
             while v != source:
                 u = parent[v]
                 path += str(u)  # add the node to the path
@@ -87,18 +88,19 @@ class Graph:
                 if u != source:
                     self.delete_edges(u)  # remove all the edges of the vertex u, so it cannot be used again
             paths.append(path[::-1])
-            if l!= 0 and l == len(paths):
-                return max_flow
-        return max_flow
+            if l != 0 and l == len(paths):
+                return -max_flow, paths
+        return -max_flow, paths
 
     def delete_edges(self, u):
         for i in range(self.ROW):
             self.graph[u][i] = 0
 
+
 def main():
     l = int(sys.argv[1])
     # randGraph = randomGraph.buildRandomGraph(10, 0.3)
-    randGraph = regRandGraph.buildRegularGraph(8, 5, 0.3)
+    randGraph = regRandGraph.buildRegularGraph(6, 2, 0.3)
     print(randGraph)
     G = nx.from_numpy_matrix(randGraph)
     plt.clf()
@@ -106,7 +108,13 @@ def main():
     g = Graph(randGraph)
     source = 0;
     sink = np.shape(randGraph)[0] - 1
-
-    print("There can be maximum %d edge-disjoint paths from %d to %d" %
-          (-g.findDisjointPaths(source, sink, l), source, sink))
+    disj_path = g.findDisjointPaths(source, sink, l)
+    all_paths = disj_path[1]
+    print("These are the %d edge-disjoint paths from %d to %d:" %
+          (disj_path[0], source, sink))
+    print(all_paths)
     plt.show(block=True)
+
+
+if __name__ == "__main__":
+    main()
