@@ -52,8 +52,7 @@ def main():
 
     rand_reg_graph = regRandGraph.RegularGraph(n, r, p)
     a = rand_reg_graph.build_regular_graph()
-    print("\n", a,method2(a))
-
-    print("method 2 \n ")
+    print(a,method2(a))
+    print()
 if __name__ == "__main__":
     main()
