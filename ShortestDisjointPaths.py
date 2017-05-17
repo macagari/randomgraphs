@@ -51,7 +51,7 @@ class Graph:
 
     # Returns the maximum number of edge-disjoint paths from s to t in the given graph
     # It was used the max-flow/residual capacity approach
-    def findDisjointPaths(self, source, sink, l):
+    def find_disjoint_paths(self, source, sink, l):
         paths = []
         # This array is filled by BFS to store path
         parent = [-1]*self.ROW
@@ -73,10 +73,16 @@ class Graph:
                     self.delete_edge(source, sink)
                 s = parent[s]
             path += str(source)
-            max_flow += path_flow   # Add path flow to overall flow
-            paths.append(path[::-1])
-            if l != 0 and l == len(paths):
-                return -max_flow, paths
+
+            # just enter here in the first cicle or the path is also a shortest path
+            if len(paths) == 0:
+                max_flow += path_flow   # Add path flow to overall flow
+                paths.append(path[::-1])
+            elif len(path) == len(paths[0]):
+                max_flow += path_flow  # Add path flow to overall flow
+                paths.append(path[::-1])
+            if l == len(paths):
+                break
         return -max_flow, paths
 
     def delete_edges(self, u):
@@ -89,17 +95,18 @@ class Graph:
 def main():
     l = int(sys.argv[1])
     # randGraph = randomGraph.buildRandomGraph(10, 0.3)
-    randGraph = regRandGraph.buildRegularGraph(6, 2, 0.3)
+    #randGraph = regRandGraph.build_regular_graph(6, 2, 0.3)
+    randGraph = np.array([[3,-1,-1,-1],[-1,3,-1,-1],[-1,3,-1,-1],[0,-1,-1,2]])
     print(randGraph)
     G = nx.from_numpy_matrix(randGraph)
     plt.clf()
-    nx.draw_networkx(G, pos=nx.spring_layout(G))
-    plt.show(block=True)
+    #nx.draw_networkx(G, pos=nx.spring_layout(G))
+    #plt.show(block=True)
 
     g = Graph(randGraph)
     source = 0;
     sink = np.shape(randGraph)[0] - 1
-    disj_path = g.findDisjointPaths(source, sink, l)
+    disj_path = g.find_disjoint_paths(source, sink, l)
     all_paths = disj_path[1]
     print("These are the %d edge-disjoint paths from %d to %d:" %
           (disj_path[0], source, sink))
