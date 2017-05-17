@@ -85,27 +85,29 @@ class Graph:
                 break
         return -max_flow, paths
 
+    # delete all the edges of one node
     def delete_edges(self, u):
         for i in range(self.ROW):
             self.delete_edge(u,i)
+
+    # delete a specific edge
     def delete_edge(self, u, v):
         self.graph[u][v] = 0
 
 
 def main():
     l = int(sys.argv[1])
-    # randGraph = randomGraph.buildRandomGraph(10, 0.3)
-    #randGraph = regRandGraph.build_regular_graph(6, 2, 0.3)
-    randGraph = np.array([[3,-1,-1,-1],[-1,3,-1,-1],[-1,3,-1,-1],[0,-1,-1,2]])
-    print(randGraph)
-    G = nx.from_numpy_matrix(randGraph)
+    RG = regRandGraph.RegularGraph(10, 3, 0.3)
+    rand_graph = RG.build_regular_graph()
+    print(rand_graph)
+    G = nx.from_numpy_matrix(rand_graph)
     plt.clf()
     #nx.draw_networkx(G, pos=nx.spring_layout(G))
     #plt.show(block=True)
 
-    g = Graph(randGraph)
+    g = Graph(rand_graph)
     source = 0;
-    sink = np.shape(randGraph)[0] - 1
+    sink = np.shape(rand_graph)[0] - 1
     disj_path = g.find_disjoint_paths(source, sink, l)
     all_paths = disj_path[1]
     print("These are the %d edge-disjoint paths from %d to %d:" %
