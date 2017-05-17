@@ -42,6 +42,8 @@ class RegularGraph:
                             new_arcs[j] = np.random.choice([0, -1], p=[1-self.p, self.p])
 
                     self.draw_arcs(i, empty_pos, new_arcs)
+        where_are_NaNs = np.isnan(self.mat)
+        self.mat[where_are_NaNs] = 0
         return self.mat
 
     def draw_arcs(self, i, empty_pos, new_arcs):
