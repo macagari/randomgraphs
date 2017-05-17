@@ -36,8 +36,8 @@ def method2(rand_graph):
     eigenValues = LA.eig(rand_graph)[0]
     secmin = sorted(eigenValues)[1]  ### sort and pick second
     if (secmin > 0):
-        print("connesso")
-    else: print("NON CONNESSO COGLIONE")
+        print("connesso",sorted(eigenValues)[1])
+    else: print("NON CONNESSO COGLIONE",sorted(eigenValues)[1])
 
 
 #def method3():
