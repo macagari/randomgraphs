@@ -4,65 +4,94 @@ import math
 import datetime
 
 
-def buildRegularGraph(n, r, p):
-    while True:
+class RegularGraph:
+    def __init__(self, n, r, p):
+        self.remaining_nodes = n
+        self.mat = np.reshape(np.zeros(n * n), newshape=(n, n))
+        self.n = n
+        self.r = r
+        self.p = p
+
+    def build_regular_graph(self):
         restart = False
-        mat = np.reshape(np.zeros(n * n), newshape=(n, n))
-        for i in range(n):
-            x = mat[i,]
-            if mat[i,i] < r:
-                # the quantity of arches that needs to be assigned
-                left = r - mat[i,i]
-                empty_pos = np.where(x == 0)[0]
-                new_arches = np.zeros(len(empty_pos))
+        # loop until all nodes are r-degree
+        while self.remaining_nodes != 0:
+            if restart:
+                self.restart()
+                restart = False
 
-                # with prob p for each arch, repeat until it equals the quantity of arches left
-                nextLine = False
-                while nextLine is False:
-                    j = 0
-                    while j < len(empty_pos):
-                        new_arches[j] = np.random.choice([0, -1], p=[1-p, p])
-                        j += 1
-                    if sum(new_arches) == -left:
-                        # when assigning a arch, the algorithm can break the regular condition on the other nodes!
-                        if drawArches(mat, i, r, empty_pos, new_arches) is True:
-                            nextLine = True
-                        else:
-                            restart = True
-                            break
-            if restart is True:
-                break
-        if mat.diagonal().prod() == math.pow(r, n):
-            break
+            # iterating through the lines creating the random arcs
+            for i in range(self.n):
 
-    return mat
+                # check if the degree of the node is already r or it has 0 arcs (it is still filled with nan)
+                if self.mat[i,i] < self.r:
+                    arcs_remaining = self.r - self.mat[i,i]
 
+                    # if the quantity of arcs to be assigned is greater than the remaining nodes, then restart the graph
+                    if arcs_remaining >= self.remaining_nodes:
+                        restart = True
+                        break
 
-def drawArches(mat, i, r, empty_pos, new_arches):
-    isRegular = True  # it's guaranteed that the mat[i,] is Regular, but not the others that "receive" the arches
-    for j in range(len(empty_pos)):
-        if i != empty_pos[j]:
-            mat[i, empty_pos[j]] = new_arches[j]
-            if new_arches[j] == -1:
-                mat[i, i] += 1  # update the node degree
-                mat[empty_pos[j], i] = -1  # "reflect" the arch to the lower matrix
-                mat[empty_pos[j], empty_pos[j]] += 1  # update the node degree in other node
+                    # empty_pos gives the arcs that could be drawn
+                    empty_pos = self.get_empty_positions(i)
+                    new_arcs = np.zeros(len(empty_pos))
 
-                # check if the other node still keeps the regularity of the graph
-                if mat[empty_pos[j], empty_pos[j]] > r:
-                    isRegular = False
-                    break
-    return isRegular
+                    # with prob p for each arc, repeat until it equals the quantity of the remaining arcs
+                    while sum(new_arcs) != -arcs_remaining:
+                        for j in range(len(empty_pos)):
+                            new_arcs[j] = np.random.choice([0, -1], p=[1-self.p, self.p])
+
+                    self.draw_arcs(i, empty_pos, new_arcs)
+        return self.mat
+
+    def draw_arcs(self, i, empty_pos, new_arcs):
+        for j in range(len(empty_pos)):
+
+            # don't draw arcs to itself
+            if i != empty_pos[j]:
+                if new_arcs[j] == -1:
+                    self.mat[i, empty_pos[j]] = new_arcs[j]  # draw the arc
+                    self.mat[i, i] += 1  # update the node degree
+                    self.mat[empty_pos[j], empty_pos[j]] += 1  # update the node degree in the other node
+
+                    self.mat[empty_pos[j], i] = -1  # "reflect" the arc to the lower matrix
+
+                    # check if the other nodes are full (node's degree == r)
+                    self.check_degree(empty_pos[j])
+        self.check_degree(i)
+
+    def check_degree(self, i):
+        if self.mat[i, i] == self.r:
+            self.remaining_nodes -= 1
+            self.make_node_unavailable(i)
+
+    # in the line 'i', verify which arcs still need to be drawn
+    def get_empty_positions(self, i):
+        x = self.mat[i, ]  # get the row to be updated
+        empty_pos = np.where(x == 0)[0]
+        return np.delete(empty_pos, np.where(empty_pos == i)[0])  # don't generate arcs to itself (the diagonal)
+
+    # guarantees that no other node will try to draw an arc to node U. It will be marked as "full"
+    def make_node_unavailable(self, u):
+        for j in range(0, self.mat.shape[0]):
+            if j != u and self.mat[j, u] != -1:
+                self.mat[j, u] = np.nan
+
+    # reinitialize the matrix and the remaining nodes
+    def restart(self):
+        self.mat = np.reshape(np.zeros(self.n * self.n), newshape=(self.n, self.n))
+        self.remaining_nodes = self.n
 
 
 def main():
     n = int(sys.argv[1])
     r = int(sys.argv[2])
     p = float(sys.argv[3])
-    t1 = datetime.datetime.now()
-    rand_graph = buildRegularGraph(n, r, p)
-    print(datetime.datetime.now() - t1)
-    print(rand_graph)
+    for i in range(30):
+        t1 = datetime.datetime.now()
+        rand_graph = RegularGraph(n, r, p)
+        a = rand_graph.build_regular_graph()
+        print(datetime.datetime.now() - t1)
 
 if __name__ == "__main__":
     main()
