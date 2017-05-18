@@ -40,54 +40,49 @@ def throughput(origG, l):
     thr = l / m
     return thr
 
+def destroyLink(matrix, i, j):
+    matrix[i, j] = 0
+    matrix[j, i] = 0
+    matrix[i, i] = matrix[i, i] - 1
+    matrix[j, j] = matrix[j, j] - 1
 
-def linkFail (mat, p, l, bloc):
+def linkFail (mat, p, l, n_fail):
     matrix = np.copy(mat)
     failure = 0
-    if bloc != 0:
-        if bloc == 'any':
-            for i in range(len(mat)):
-                for j in range(len(mat)):
-                    if (matrix[i, j] == -1):
-                        k = np.random.choice([0, 1], p=[1 - p, p])
-                        if (k == 1):
-                            failure = failure + 1
-                            matrix[i, j] = 0
-                            matrix[j, i] = 0
-                            matrix[i, i] = matrix[i, i] - 1
-                            matrix[j, j] = matrix[j, j] - 1
-        else:
-            while failure <= bloc:
-                for i in range(len(mat)):
-                    for j in range(len(mat)):
-                        if (matrix[i,j] == -1):
-                            k = np.random.choice([0, 1], p=[1 - p, p])
-                            if (k == 1):
-                                failure = failure + 1
-                                matrix[i, j] = 0
-                                matrix[j,i] = 0
-                                matrix[i,i] = matrix[i,i] - 1
-                                matrix[j,j] = matrix[j,j] - 1
+    if n_fail != 0:
+        c = 1- p
+        for i in range(len(mat)):
+            for j in range(len(mat)):
+                if (matrix[i, j] == -1):
+                    k = np.random.choice([0, 1], p = [1 - p, p])
+                    if (k == 1):
+                        destroyLink(matrix, i, j)
+                        failure = failure + 1
+                        if(n_fail != 'any' and n_fail == failure):
+                            break
 
-    plotThroughput(matrix, l)
+    thr = throughput(matrix, l)
+    return thr
 
-
-def plotThroughput( mat, l):
+def plotThroughput( mat, l, prob, n_fail):
     thr = []
-    for i in l:
-        thr.append(throughput(mat,i))
+    for p in prob:
+        t = linkFail(mat, p, l, n_fail)
+        thr.append(t)
 
-    plt.plot(l, thr)
-    plt.xlabel('l')
+    print(thr)
+
+    plt.plot(prob, thr)
+    plt.xlabel('Probabilities')
     plt.ylabel('Throughput')
-    plt.axis([1, 4, 0, 1])
+    plt.axis([0.0, 0.25, 0, 1])
     plt.show()
 
 
 
 def main():
    # l = int(sys.argv[1])
-    g1 = randomGraph.buildRandomGraph(80, 0.7)
+    g1 = randomGraph.buildRandomGraph(10, 0.7)
     #randGraph = regRandGraph.build_regular_graph(6, 2, 0.3)
     #randGraph = np.array([[3,-1,-1,-1],[-1,3,-1,-1],[-1,3,-1,-1],[0,-1,-1,2]])
     #print(randGraph)
@@ -130,7 +125,9 @@ def main():
 
     #g.plotThroughput(g1, [1, 2, 3, 4])
     l = [1,2,3,4]
-    linkFail(g1,0.2, l)
+    prob = np.arange(0.01, 0.25, 0.01)
+    print(prob)
+    plotThroughput(g1,2, prob, 4)
 
 
 
