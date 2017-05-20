@@ -87,3 +87,45 @@ def main():
     print(method1(a),method2(a),method3(a,n,startingNode))
 if __name__ == "__main__":
     main()
+    
+    
+def mean_complex(sim, nodes, prob,n_graph,n):
+    
+    v1 = []
+    v2 = []
+    v3 = []
+    
+    if(n == 1):
+        for i in range(0,n_graph):
+            g = buildRandomGraph(nodes, prob)
+            for j in range(sim):  #calculate several times complexity on the same graph
+                t1 = time.time()    #to be more precisely
+                m1 = method1(g)
+                v1.append(time.time()-t1)
+            
+        print(v1)
+        print("mean of method1:",np.mean(v1))
+        
+    if(n == 2):
+        for i in range(0,n_graph):
+            g = buildRandomGraph(nodes, prob)
+        
+            for k in range(sim):
+                t2 = time.time()
+                m2 = method2(g)
+                v2.append(time.time()-t2)
+        print(v2)
+        print("mean of method2:",np.mean(v2))
+          
+        
+    if(n==3):
+        for i in range(0,n_graph):
+            g = buildRandomGraph(nodes, prob)
+            
+            for l in range(sim):
+                t3 = time.time()
+                m3 = method3(g,nodes,1)
+                v3.append(time.time()-t3)
+                
+        print(v3)
+        print("mean of method3:",np.mean(v3))
